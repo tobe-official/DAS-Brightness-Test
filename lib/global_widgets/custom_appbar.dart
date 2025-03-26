@@ -9,6 +9,9 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     return AppBar(
+      iconTheme: const IconThemeData(
+        color: SBBColors.white,
+      ),
       title: Text(
         title ?? 'DAS Brightness Controller',
         style: TextStyle(color: SBBColors.white),
@@ -18,5 +21,5 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   }
 
   @override
-  Size get preferredSize => const Size.fromHeight(sbbDefaultSpacing * 5);
+  Size get preferredSize => const Size.fromHeight(sbbDefaultSpacing * 4);
 }
