@@ -11,7 +11,7 @@ class BaseSite extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CustomAppBar(
-        title: 'Base Methods',
+        title: method.name,
       ),
       body: Center(
         child: Text('Description: ${method.description}'),

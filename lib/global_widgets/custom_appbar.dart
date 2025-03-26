@@ -9,6 +9,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     return AppBar(
+      centerTitle: true,
       iconTheme: const IconThemeData(
         color: SBBColors.white,
       ),
@@ -21,5 +22,5 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   }
 
   @override
-  Size get preferredSize => const Size.fromHeight(sbbDefaultSpacing * 4);
+  Size get preferredSize => const Size.fromHeight(sbbDefaultSpacing * 3.5);
 }

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:ip_sprint_brightness/assets.dart';
 import 'package:ip_sprint_brightness/global_widgets/custom_appbar.dart';
 import 'package:ip_sprint_brightness/methods/method_list.dart';
 import 'package:ip_sprint_brightness/models/method_model.dart';
@@ -61,7 +60,7 @@ class HomePage extends StatelessWidget {
             children: [
               Expanded(
                 child: SvgPicture.asset(
-                  AppAssets.notFound,
+                  method.image,
                 ),
               ),
               const SizedBox(height: 8),
