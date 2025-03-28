@@ -8,25 +8,12 @@ class CustomRouter {
   final BuildContext context;
 
   void routeToPage(MethodModel method) {
-    switch (method.page) {
-      case 'BaseSite':
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (context) => BaseSite(
-              method: method,
-            ),
-          ),
-        );
-        break;
-      default:
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (context) => BaseSite(
-              method: method,
-            ),
-          ),
-        );
-        break;
-    }
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => BaseSite(
+          method: method,
+        ),
+      ),
+    );
   }
 }

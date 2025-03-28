@@ -1,13 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:ip_sprint_brightness/brightness/brightness_util.dart';
 import 'package:ip_sprint_brightness/global_widgets/custom_appbar.dart';
 import 'package:ip_sprint_brightness/methods/method_list.dart';
 import 'package:ip_sprint_brightness/models/method_model.dart';
 import 'package:ip_sprint_brightness/router/custom_router.dart';
 import 'package:sbb_design_system_mobile/sbb_design_system_mobile.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   const HomePage({super.key});
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  @override
+  void initState() {
+    BrightnessUtil.setBrightness(1, context);
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {

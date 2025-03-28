@@ -38,6 +38,8 @@ dependencies:
   sbb_design_system_mobile: ^2.3.0
   #https://pub.dev/packages/flutter_svg
   flutter_svg: ^2.0.17
+  #https://pub.dev/packages/screen_brightness
+  screen_brightness: ^2.1.2
 
 
 dev_dependencies:
