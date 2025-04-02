@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:ip_sprint_brightness/brightness/brightness_util.dart';
+import 'package:ip_sprint_brightness/flappy_bird/flappy_screen.dart';
 import 'package:ip_sprint_brightness/global_widgets/custom_appbar.dart';
 import 'package:ip_sprint_brightness/models/method_model.dart';
 import 'package:sbb_design_system_mobile/sbb_design_system_mobile.dart';
@@ -94,6 +95,9 @@ class _BaseSiteState extends State<BaseSite> {
         final current = await BrightnessUtil.getCurrentBrightness();
         final newBrightness = current < 0.5 ? 1.0 : 0.1;
         BrightnessUtil.setBrightness(newBrightness, context);
+      },
+      onLongPress: () {
+        Navigator.of(context).push(MaterialPageRoute(builder: (context) => FlappyScreen()));
       },
       child: _showWhatToDo(),
     );

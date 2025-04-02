@@ -14,4 +14,5 @@ class AppAssets {
   static const method5 = '$_imagesDir/not-found.svg';
   static const method6 = '$_imagesDir/method6.svg';
   static const method7 = '$_imagesDir/method7.svg';
+  static const train = '$_imagesDir/sbb-train.svg';
 }
