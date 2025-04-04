@@ -5,6 +5,7 @@ class AppAssets {
   const AppAssets._();
 
   static const String _imagesDir = 'assets/images';
+  static const String _iconsDir = 'assets/icons';
 
   // images
   static const method1 = '$_imagesDir/method1.svg';
@@ -15,4 +16,7 @@ class AppAssets {
   static const method6 = '$_imagesDir/method6.svg';
   static const method7 = '$_imagesDir/method7.svg';
   static const train = '$_imagesDir/sbb-train.svg';
+
+  //icons
+  static const iconHeaderStop = '$_iconsDir/icon_header_stop.svg';
 }

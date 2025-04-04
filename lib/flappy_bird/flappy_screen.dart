@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:ip_sprint_brightness/flappy_bird/barrier.dart';
 import 'package:ip_sprint_brightness/flappy_bird/bird.dart';
+import 'package:ip_sprint_brightness/flappy_bird/game_over_screen.dart';
 import 'package:ip_sprint_brightness/global_widgets/custom_appbar.dart';
 import 'package:sbb_design_system_mobile/sbb_design_system_mobile.dart';
 
@@ -15,18 +16,26 @@ class FlappyScreen extends StatefulWidget {
 }
 
 class _FlappyGameState extends State<FlappyScreen> {
+  final int devScore = 88;
+
+  // Bird position and physics
   static double birdY = 0;
+  static const double birdSize = 35;
   double initialPos = birdY;
   double height = 0;
   double time = 0;
+
+  // Game state
   bool gameHasStarted = false;
   Timer? gameTimer;
   double velocity = 0.015;
   int score = 0;
 
+  // Barrier data
   final Random rand = Random();
   List<Map<String, dynamic>> barriers = [];
 
+  // Generate random height for top and bottom barriers
   List<double> generateRandomBarrierHeights() {
     double top = rand.nextDouble() * 200 + 50;
     double bottom = 300 - top;
@@ -38,60 +47,104 @@ class _FlappyGameState extends State<FlappyScreen> {
     time = 0;
     initialPos = 0;
 
-    int initialBarrierCount = rand.nextInt(3) + 2;
+    // Initial barrier generation
+    int initialBarrierCount = 6;
     barriers = List.generate(initialBarrierCount, (index) {
       return {
         'x': 1.0 + index * 1.0,
         'heights': generateRandomBarrierHeights(),
+        'offset': 0.0,
+        'movingDown': rand.nextBool(),
         'passed': false,
       };
     });
 
+    // Start game loop
     gameTimer = Timer.periodic(const Duration(milliseconds: 60), (timer) {
       time += 0.05;
       height = -4.9 * time * time + 2.8 * time;
-      velocity += 0.00005;
+      velocity += 0.00003 + 0.00001 * sin(score / 2);
 
       if (mounted) {
         setState(() {
           birdY = initialPos - height;
           for (var barrier in barriers) {
             barrier['x'] -= velocity;
+
+            // Vertical movement of barriers
+            if (velocity > 0.5 && rand.nextBool()) {
+              double offsetChange = 0.5;
+              if (barrier['movingDown']) {
+                barrier['offset'] += offsetChange;
+                if (barrier['offset'] > 30) barrier['movingDown'] = false;
+              } else {
+                barrier['offset'] -= offsetChange;
+                if (barrier['offset'] < -30) barrier['movingDown'] = true;
+              }
+            }
           }
         });
       }
 
+      // Get bird hitbox
+      Size screenSize = MediaQuery.of(context).size;
+      double birdCenterY = (birdY + 1) * screenSize.height / 2;
+      double birdTop = birdCenterY - birdSize / 2;
+      double birdBottom = birdCenterY + birdSize / 2;
+      double birdLeft = screenSize.width / 2 - birdSize / 2;
+      double birdRight = screenSize.width / 2 + birdSize / 2;
+      Rect birdRect = Rect.fromLTRB(birdLeft, birdTop, birdRight, birdBottom);
+
+      // Bird hits ceiling or floor
       if (birdY > 1 || birdY < -1) {
         timer.cancel();
         gameTimer?.cancel();
         resetGame();
       }
 
-      Size screenSize = MediaQuery.of(context).size;
-
+      // Collision detection
       for (var barrier in barriers) {
         double x = barrier['x'];
         List<double> heights = barrier['heights'];
-        double gapTop = -1 + 2 * (heights[0] / screenSize.height);
-        double gapBottom = 1 - 2 * (heights[1] / screenSize.height);
+        double offset = barrier['offset'];
+        double barrierWidth = 45;
+        double barrierXPos = (x + 1) / 2 * screenSize.width;
 
-        if ((x).abs() < 0.1 && (birdY < gapTop + 0.02 || birdY > gapBottom - 0.02)) {
+        Rect topRect = Rect.fromLTWH(
+          barrierXPos,
+          0 + offset,
+          barrierWidth,
+          heights[0],
+        );
+
+        Rect bottomRect = Rect.fromLTWH(
+          barrierXPos,
+          screenSize.height - heights[1] + offset,
+          barrierWidth,
+          heights[1],
+        );
+
+        if (birdRect.overlaps(topRect) || birdRect.overlaps(bottomRect)) {
           timer.cancel();
           gameTimer?.cancel();
           resetGame();
         }
 
+        // Score counting
         if (!barrier['passed'] && x < 0 && x > -0.1) {
           score++;
           barrier['passed'] = true;
         }
       }
 
+      // Recycle barriers
       if (barriers.isNotEmpty && barriers.first['x'] < -1.5) {
         barriers.removeAt(0);
         barriers.add({
           'x': barriers.last['x'] + rand.nextDouble() * 1.5 + 0.8,
           'heights': generateRandomBarrierHeights(),
+          'offset': 0.0,
+          'movingDown': rand.nextBool(),
           'passed': false,
         });
       }
@@ -106,10 +159,14 @@ class _FlappyGameState extends State<FlappyScreen> {
   }
 
   void resetGame() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Oops, you lost the game!')),
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(
+        builder: (context) => GameOverScreen(
+          score: score,
+          devScore: devScore,
+        ),
+      ),
     );
-    Navigator.pop(context);
   }
 
   @override
@@ -129,7 +186,7 @@ class _FlappyGameState extends State<FlappyScreen> {
                   AnimatedContainer(
                     alignment: Alignment(0, birdY),
                     duration: const Duration(milliseconds: 0),
-                    color: SBBColors.charcoal,
+                    color: SBBColors.white,
                     child: const Bird(),
                   ),
                   ...barriers.expand((barrier) => [
@@ -137,11 +194,13 @@ class _FlappyGameState extends State<FlappyScreen> {
                           xPos: barrier['x'],
                           height: barrier['heights'][0],
                           isBottom: false,
+                          offset: barrier['offset'],
                         ),
                         Barrier(
                           xPos: barrier['x'],
                           height: barrier['heights'][1],
                           isBottom: true,
+                          offset: barrier['offset'],
                         ),
                       ]),
                   Container(
@@ -151,7 +210,7 @@ class _FlappyGameState extends State<FlappyScreen> {
                       style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
-                        color: SBBColors.white,
+                        color: SBBColors.black,
                       ),
                     ),
                   ),
@@ -161,7 +220,7 @@ class _FlappyGameState extends State<FlappyScreen> {
             Expanded(
               child: Container(
                 width: double.infinity,
-                color: SBBColors.red,
+                color: SBBColors.royal,
                 child: Center(
                   child: Text(
                     'Pass as many doors as possible!',

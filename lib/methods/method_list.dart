@@ -26,12 +26,6 @@ class MethodList {
         image: AppAssets.method4,
         page: 'Method4'),
     MethodModel(
-        name: 'Drag circles',
-        description:
-            'Drag a circle with your finger to adjust the brightness. Clockwise for increasing and counterclockwise for decreasing.',
-        image: AppAssets.method6,
-        page: 'Method6'),
-    MethodModel(
         name: 'Horizontal drags',
         description:
             'Drag horizontally to the right to increase and horizontally to the left to decrease the brightness',

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:ip_sprint_brightness/brightness/brightness_util.dart';
 import 'package:ip_sprint_brightness/flappy_bird/flappy_screen.dart';
 import 'package:ip_sprint_brightness/global_widgets/custom_appbar.dart';
+import 'package:ip_sprint_brightness/header_mock/header.dart';
 import 'package:ip_sprint_brightness/models/method_model.dart';
 import 'package:sbb_design_system_mobile/sbb_design_system_mobile.dart';
 
@@ -36,9 +37,6 @@ class _BaseSiteState extends State<BaseSite> {
       case 'Method5':
         content = _method5();
         break;
-      case 'Method6':
-        content = _method6();
-        break;
       case 'Method7':
         content = _method7();
         break;
@@ -51,7 +49,7 @@ class _BaseSiteState extends State<BaseSite> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CustomAppBar(title: widget.method.name),
-      backgroundColor: SBBColors.white,
+      backgroundColor: SBBColors.charcoal,
       body: content ?? _defaultMethod(),
     );
   }
@@ -135,13 +133,6 @@ class _BaseSiteState extends State<BaseSite> {
     );
   }
 
-  Widget _method6() {
-    return GestureDetector(
-      //Implement later
-      child: _showWhatToDo(),
-    );
-  }
-
   Widget _method7() {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
@@ -163,9 +154,7 @@ class _BaseSiteState extends State<BaseSite> {
       width: double.infinity,
       height: double.infinity,
       alignment: Alignment.center,
-      child: Center(
-        child: Text(widget.method.description, style: SBBTextStyle().textStyle, textAlign: TextAlign.center),
-      ),
+      child: Header(),
     );
   }
 }

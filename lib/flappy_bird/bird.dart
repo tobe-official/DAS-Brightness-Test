@@ -9,8 +9,8 @@ class Bird extends StatelessWidget {
   Widget build(BuildContext context) {
     return SvgPicture.asset(
       AppAssets.train,
-      width: 35,
-      height: 35,
+      width: 30,
+      height: 30,
     );
   }
 }
