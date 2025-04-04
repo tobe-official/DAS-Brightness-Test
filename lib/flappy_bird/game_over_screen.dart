@@ -16,6 +16,7 @@ class GameOverScreen extends StatelessWidget {
         title: 'You lost, too bad',
       ),
       body: _body(context),
+      backgroundColor: SBBColors.milk,
     );
   }
 

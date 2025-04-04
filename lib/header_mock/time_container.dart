@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:sbb_design_system_mobile/sbb_design_system_mobile.dart';
 
 class TimeContainer extends StatelessWidget {
@@ -20,7 +21,7 @@ class TimeContainer extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: sbbDefaultSpacing * 0.5),
       child: SizedBox(
         width: 124.0,
-        height: 113,
+        height: 144,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.end,
@@ -57,17 +58,23 @@ Widget _punctualityDisplay(BuildContext context) {
   );
 }
 
-Widget _currentTime() {
-  return Padding(
-    padding: const EdgeInsets.fromLTRB(sbbDefaultSpacing * 0.5, sbbDefaultSpacing * 0.5, sbbDefaultSpacing * 0.5, 0),
-    child: Text(
-      '13:58:29',
-      style: TextStyle(
-        fontSize: 24,
-        fontWeight: FontWeight.w300,
-        fontFamily: SBBFontFamily.sbbFontLight,
-        height: 32 / 24,
-      ),
-    ),
+StreamBuilder _currentTime() {
+  return StreamBuilder(
+    stream: Stream.periodic(const Duration(milliseconds: 200)),
+    builder: (context, snapshot) {
+      return Padding(
+        padding:
+            const EdgeInsets.fromLTRB(sbbDefaultSpacing * 0.5, sbbDefaultSpacing * 0.5, sbbDefaultSpacing * 0.5, 0),
+        child: Text(
+          DateFormat('HH:mm:ss').format(DateTime.now().toLocal()),
+          style: TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.w700,
+            fontFamily: SBBFontFamily.sbbFontBold,
+            height: 32 / 24,
+          ),
+        ),
+      );
+    },
   );
 }

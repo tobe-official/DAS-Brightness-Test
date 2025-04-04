@@ -2,12 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:screen_brightness/screen_brightness.dart';
 
 class BrightnessUtil {
-  static Future<void> setBrightness(double brightness, BuildContext context) async {
+  static Future<bool> setBrightness(double brightness) async {
     try {
       await ScreenBrightness().setApplicationScreenBrightness(brightness.clamp(0.0, 1.0));
+      return true;
     } catch (e) {
-      _showSnackBar(context, "Helligkeit konnte nicht geändert werden.");
-      debugPrint("Fehler beim Setzen der Helligkeit: $e");
+      debugPrint("Helligkeit konnte nicht geändert werden: $e");
+      return false;
     }
   }
 
@@ -18,11 +19,5 @@ class BrightnessUtil {
       debugPrint("Fehler beim Abfragen der Helligkeit: $e");
       return 0.5;
     }
-  }
-
-  static void _showSnackBar(BuildContext context, String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
   }
 }

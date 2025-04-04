@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:ip_sprint_brightness/assets.dart';
+import 'package:ip_sprint_brightness/global_widgets/custom_snack_bar.dart';
 import 'package:sbb_design_system_mobile/sbb_design_system_mobile.dart';
 
 class MainContainer extends StatelessWidget {
@@ -9,10 +10,12 @@ class MainContainer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
+      height: 144,
       decoration: BoxDecoration(
         color: SBBColors.white,
         borderRadius: BorderRadius.circular(16),
       ),
+      margin: const EdgeInsets.only(left: sbbDefaultSpacing * 0.5),
       padding: const EdgeInsets.symmetric(horizontal: sbbDefaultSpacing * 0.5),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -144,13 +147,11 @@ class MainContainer extends StatelessWidget {
   }
 
   Widget _sbbButton(String label, IconData icon, BuildContext context) {
-    return TextButton(
+    return OutlinedButton(
       onPressed: () {
         ScaffoldMessenger.of(context).clearSnackBars();
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Oops, pressed a button...'),
-          ),
+          CustomSnackBar.build(label: 'Oops, pressed a button...'),
         );
       },
       child: Row(
@@ -158,16 +159,17 @@ class MainContainer extends StatelessWidget {
         children: [
           Icon(
             icon,
-            size: 25,
+            size: 24,
             color: SBBColors.charcoal,
           ),
-          SizedBox(
-            width: 4,
-          ),
+          if (label != '')
+            SizedBox(
+              width: 4,
+            ),
           Text(
             label,
-            style: TextStyle(fontSize: 20, color: SBBColors.charcoal),
-          )
+            style: TextStyle(fontSize: 16, color: SBBColors.charcoal),
+          ),
         ],
       ),
     );

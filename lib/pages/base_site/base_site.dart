@@ -16,145 +16,165 @@ class BaseSite extends StatefulWidget {
 }
 
 class _BaseSiteState extends State<BaseSite> {
-  Widget? content;
-
-  @override
-  void initState() {
-    super.initState();
-    switch (widget.method.page) {
-      case 'Method1':
-        content = _method1();
-        break;
-      case 'Method2':
-        content = _method2();
-        break;
-      case 'Method3':
-        content = _method3();
-        break;
-      case 'Method4':
-        content = _method4();
-        break;
-      case 'Method5':
-        content = _method5();
-        break;
-      case 'Method7':
-        content = _method7();
-        break;
-      default:
-        content = _defaultMethod();
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CustomAppBar(title: widget.method.name),
-      backgroundColor: SBBColors.charcoal,
-      body: content ?? _defaultMethod(),
+      backgroundColor: SBBColors.milk,
+      body: _buildContent(context),
     );
   }
 
-  Widget _defaultMethod() {
-    return Center(child: Text("No method available."));
-  }
-
-  Widget _method1() {
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onPanUpdate: (details) {
-        if (details.delta.dx > 5 && details.delta.dy > 5) {
-          BrightnessUtil.setBrightness(0.2, context);
-        } else if (details.delta.dx < -5 && details.delta.dy < -5) {
-          BrightnessUtil.setBrightness(0.8, context);
-        }
-      },
-      child: _showWhatToDo(),
-    );
-  }
-
-  Widget _method2() {
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onPanUpdate: (details) {
-        if (details.delta.dy > 5) {
-          BrightnessUtil.setBrightness(0.2, context);
-        } else if (details.delta.dy < -5) {
-          BrightnessUtil.setBrightness(0.8, context);
-        }
-      },
-      child: _showWhatToDo(),
-    );
-  }
-
-  Widget _method3() {
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onDoubleTap: () async {
-        final current = await BrightnessUtil.getCurrentBrightness();
-        final newBrightness = current < 0.5 ? 1.0 : 0.1;
-        BrightnessUtil.setBrightness(newBrightness, context);
-      },
-      onLongPress: () {
-        Navigator.of(context).push(MaterialPageRoute(builder: (context) => FlappyScreen()));
-      },
-      child: _showWhatToDo(),
-    );
-  }
-
-  Widget _method4() {
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onLongPress: () async {
-        final current = await BrightnessUtil.getCurrentBrightness();
-        final newBrightness = current < 0.5 ? 1.0 : 0.1;
-        BrightnessUtil.setBrightness(newBrightness, context);
-      },
-      child: _showWhatToDo(),
-    );
-  }
-
-  Widget _method5() {
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: () {
-        BrightnessUtil.setBrightness(1.0, context);
-      },
-      child: Container(
-        width: double.infinity,
-        height: double.infinity,
-        alignment: Alignment.center,
-        child: ElevatedButton(
-          onPressed: () {
-            BrightnessUtil.setBrightness(1.0, context);
-          },
-          child: const Text('Set to max brightness'),
+  Widget buildCenteredDescription(BuildContext context) {
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxHeight: 300),
+        child: Text(
+          widget.method.description,
+          style: const TextStyle(
+            fontSize: 16,
+            color: SBBColors.black,
+            fontWeight: FontWeight.bold,
+          ),
+          textAlign: TextAlign.center,
         ),
       ),
     );
   }
 
-  Widget _method7() {
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onHorizontalDragUpdate: (details) async {
-        double value = await BrightnessUtil.getCurrentBrightness();
-        if (details.delta.dx > 0) {
-          value = (value + 0.05).clamp(0.0, 1.0);
-        } else if (details.delta.dx < 0) {
-          value = (value - 0.05).clamp(0.0, 1.0);
-        }
-        BrightnessUtil.setBrightness(value, context);
-      },
-      child: _showWhatToDo(),
+  Widget wrapInFullScreenContainer(BuildContext context, {required Widget gestureHeader}) {
+    return SizedBox.expand(
+      child: Column(
+        children: [
+          gestureHeader,
+          const SizedBox(height: 24),
+          Expanded(
+            child: buildCenteredDescription(context),
+          ),
+        ],
+      ),
     );
   }
 
-  Widget _showWhatToDo() {
-    return Container(
-      width: double.infinity,
-      height: double.infinity,
-      alignment: Alignment.center,
-      child: Header(),
+  Widget _buildContent(BuildContext context) {
+    switch (widget.method.page) {
+      case 'Method1':
+        return _method1(context);
+      case 'Method2':
+        return _method2(context);
+      case 'Method3':
+        return _method3(context);
+      case 'Method4':
+        return _method4(context);
+      case 'Method5':
+        return _method5(context);
+      case 'Method7':
+        return _method7(context);
+      default:
+        return _defaultMethod();
+    }
+  }
+
+  Widget _defaultMethod() {
+    return const Center(child: Text("No method available."));
+  }
+
+  Widget _method1(BuildContext context) {
+    return wrapInFullScreenContainer(
+      context,
+      gestureHeader: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onPanUpdate: (details) {
+          if (details.delta.dx > 5 && details.delta.dy > 5) {
+            BrightnessUtil.setBrightness(0.2);
+          } else if (details.delta.dx < -5 && details.delta.dy < -5) {
+            BrightnessUtil.setBrightness(0.8);
+          }
+        },
+        child: const Header(),
+      ),
+    );
+  }
+
+  Widget _method2(BuildContext context) {
+    return wrapInFullScreenContainer(
+      context,
+      gestureHeader: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onPanUpdate: (details) {
+          if (details.delta.dy > 5) {
+            BrightnessUtil.setBrightness(0.2);
+          } else if (details.delta.dy < -5) {
+            BrightnessUtil.setBrightness(0.8);
+          }
+        },
+        child: const Header(),
+      ),
+    );
+  }
+
+  Widget _method3(BuildContext context) {
+    return wrapInFullScreenContainer(
+      context,
+      gestureHeader: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onDoubleTap: () async {
+          final current = await BrightnessUtil.getCurrentBrightness();
+          final newBrightness = current < 0.5 ? 1.0 : 0.1;
+          BrightnessUtil.setBrightness(newBrightness);
+        },
+        onLongPress: () {
+          Navigator.of(context).push(MaterialPageRoute(builder: (context) => const FlappyScreen()));
+        },
+        child: const Header(),
+      ),
+    );
+  }
+
+  Widget _method4(BuildContext context) {
+    return wrapInFullScreenContainer(
+      context,
+      gestureHeader: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onLongPress: () async {
+          final current = await BrightnessUtil.getCurrentBrightness();
+          final newBrightness = current < 0.5 ? 1.0 : 0.1;
+          BrightnessUtil.setBrightness(newBrightness);
+        },
+        child: const Header(),
+      ),
+    );
+  }
+
+  Widget _method5(BuildContext context) {
+    return wrapInFullScreenContainer(
+      context,
+      gestureHeader: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () {
+          BrightnessUtil.setBrightness(1.0);
+        },
+        child: const Header(),
+      ),
+    );
+  }
+
+  Widget _method7(BuildContext context) {
+    return wrapInFullScreenContainer(
+      context,
+      gestureHeader: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onHorizontalDragUpdate: (details) async {
+          double value = await BrightnessUtil.getCurrentBrightness();
+          if (details.delta.dx > 0) {
+            value = (value + 0.01).clamp(0.0, 1.0);
+          } else if (details.delta.dx < 0) {
+            value = (value - 0.01).clamp(0.0, 1.0);
+          }
+          BrightnessUtil.setBrightness(value);
+        },
+        child: const Header(),
+      ),
     );
   }
 }

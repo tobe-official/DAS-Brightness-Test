@@ -17,7 +17,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   @override
   void initState() {
-    BrightnessUtil.setBrightness(1, context);
+    BrightnessUtil.setBrightness(1);
     super.initState();
   }
 

@@ -6,6 +6,7 @@ import 'package:ip_sprint_brightness/flappy_bird/barrier.dart';
 import 'package:ip_sprint_brightness/flappy_bird/bird.dart';
 import 'package:ip_sprint_brightness/flappy_bird/game_over_screen.dart';
 import 'package:ip_sprint_brightness/global_widgets/custom_appbar.dart';
+import 'package:ip_sprint_brightness/global_widgets/custom_snack_bar.dart';
 import 'package:sbb_design_system_mobile/sbb_design_system_mobile.dart';
 
 class FlappyScreen extends StatefulWidget {
@@ -17,6 +18,7 @@ class FlappyScreen extends StatefulWidget {
 
 class _FlappyGameState extends State<FlappyScreen> {
   final int devScore = 88;
+  bool snackBarBoolVelocity = false;
 
   // Bird position and physics
   static double birdY = 0;
@@ -71,8 +73,12 @@ class _FlappyGameState extends State<FlappyScreen> {
           for (var barrier in barriers) {
             barrier['x'] -= velocity;
 
+            if (velocity > 0.03 && !snackBarBoolVelocity) {
+              showSnackBar('Watch out! Barriers can move now', 'snackBarBoolVelocity');
+            }
+
             // Vertical movement of barriers
-            if (velocity > 0.5 && rand.nextBool()) {
+            if (velocity > 0.03 && rand.nextBool()) {
               double offsetChange = 0.5;
               if (barrier['movingDown']) {
                 barrier['offset'] += offsetChange;
@@ -177,6 +183,7 @@ class _FlappyGameState extends State<FlappyScreen> {
         appBar: CustomAppBar(
           title: 'Flappy Train',
         ),
+        backgroundColor: SBBColors.milk,
         body: Column(
           children: [
             Expanded(
@@ -245,5 +252,19 @@ class _FlappyGameState extends State<FlappyScreen> {
     gameTimer?.cancel();
     birdY = 0;
     super.dispose();
+  }
+
+  void showSnackBar(String text, String boolToChange) {
+    ScaffoldMessenger.of(context).clearSnackBars();
+    ScaffoldMessenger.of(context).showSnackBar(CustomSnackBar.build(
+      label: text,
+    ));
+    switch (boolToChange) {
+      case 'snackBarBoolVelocity':
+        snackBarBoolVelocity = true;
+        break;
+      default:
+        break;
+    }
   }
 }
