@@ -168,7 +168,11 @@ class MainContainer extends StatelessWidget {
             ),
           Text(
             label,
-            style: TextStyle(fontSize: 16, color: SBBColors.charcoal),
+            style: TextStyle(
+                fontSize: 16,
+                fontFamily: SBBFontFamily.sbbFontLight,
+                fontWeight: FontWeight.w300,
+                color: SBBColors.black),
           ),
         ],
       ),

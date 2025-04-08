@@ -60,8 +60,6 @@ class _BaseSiteState extends State<BaseSite> {
     switch (widget.method.page) {
       case 'Method1':
         return _method1(context);
-      case 'Method2':
-        return _method2(context);
       case 'Method3':
         return _method3(context);
       case 'Method4':
@@ -84,29 +82,14 @@ class _BaseSiteState extends State<BaseSite> {
       context,
       gestureHeader: GestureDetector(
         behavior: HitTestBehavior.opaque,
-        onPanUpdate: (details) {
-          if (details.delta.dx > 5 && details.delta.dy > 5) {
-            BrightnessUtil.setBrightness(0.2);
-          } else if (details.delta.dx < -5 && details.delta.dy < -5) {
-            BrightnessUtil.setBrightness(0.8);
+        onVerticalDragUpdate: (details) async {
+          double value = await BrightnessUtil.getCurrentBrightness();
+          if (details.delta.dy < 0) {
+            value = (value + 0.01).clamp(0.0, 1.0);
+          } else if (details.delta.dy > 0) {
+            value = (value - 0.01).clamp(0.0, 1.0);
           }
-        },
-        child: const Header(),
-      ),
-    );
-  }
-
-  Widget _method2(BuildContext context) {
-    return wrapInFullScreenContainer(
-      context,
-      gestureHeader: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onPanUpdate: (details) {
-          if (details.delta.dy > 5) {
-            BrightnessUtil.setBrightness(0.2);
-          } else if (details.delta.dy < -5) {
-            BrightnessUtil.setBrightness(0.8);
-          }
+          BrightnessUtil.setBrightness(value);
         },
         child: const Header(),
       ),

@@ -1,10 +1,12 @@
-import 'dart:async';
 import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:ip_sprint_brightness/flappy_bird/barrier.dart';
+import 'package:ip_sprint_brightness/flappy_bird/barrier_model.dart';
 import 'package:ip_sprint_brightness/flappy_bird/bird.dart';
+import 'package:ip_sprint_brightness/flappy_bird/evu_bird_selection.dart';
+import 'package:ip_sprint_brightness/flappy_bird/game_collider.dart';
 import 'package:ip_sprint_brightness/flappy_bird/game_over_screen.dart';
+import 'package:ip_sprint_brightness/flappy_bird/collision_service.dart';
 import 'package:ip_sprint_brightness/global_widgets/custom_appbar.dart';
 import 'package:ip_sprint_brightness/global_widgets/custom_snack_bar.dart';
 import 'package:sbb_design_system_mobile/sbb_design_system_mobile.dart';
@@ -16,145 +18,141 @@ class FlappyScreen extends StatefulWidget {
   State<FlappyScreen> createState() => _FlappyGameState();
 }
 
-class _FlappyGameState extends State<FlappyScreen> {
-  final int devScore = 88;
-  bool snackBarBoolVelocity = false;
-
-  // Bird position and physics
+class _FlappyGameState extends State<FlappyScreen> with SingleTickerProviderStateMixin {
   static double birdY = 0;
-  static const double birdSize = 35;
   double initialPos = birdY;
   double height = 0;
   double time = 0;
+  double velocity = 0.01;
 
-  // Game state
   bool gameHasStarted = false;
-  Timer? gameTimer;
-  double velocity = 0.015;
+  bool snackBarShown = false;
   int score = 0;
 
-  // Barrier data
+  final int devScore = 88;
   final Random rand = Random();
-  List<Map<String, dynamic>> barriers = [];
+  final List<BarrierModel> barriers = [];
+  String? chosenEVU;
 
-  // Generate random height for top and bottom barriers
-  List<double> generateRandomBarrierHeights() {
+  late AnimationController _gameLoopController;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (chosenEVU == null) {
+        chooseEVU();
+      }
+    });
+
+    _gameLoopController = AnimationController(
+      vsync: this,
+      duration: const Duration(days: 1),
+    )..addListener(_updateGame);
+  }
+
+  void chooseEVU() async {
+    chosenEVU = await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => const EvuBirdSelection(),
+    );
+    setState(() {});
+  }
+
+  void startGame() {
+    setState(() {
+      gameHasStarted = true;
+      velocity = 0.01;
+      score = 0;
+      birdY = 0;
+      initialPos = 0;
+      time = 0;
+      snackBarShown = false;
+      barriers.clear();
+      _generateBarriers();
+      _gameLoopController.forward();
+    });
+  }
+
+  void _updateGame() {
+    _moveBird();
+    _updateBarriers();
+    _checkCollisionAndScore();
+    _recycleBarriers();
+    setState(() {});
+  }
+
+  void _moveBird() {
+    time += 0.016;
+    height = -2.5 * time * time + 2.0 * time;
+    velocity += 0.001 * (sin(0.001) / 2);
+    birdY = initialPos - height;
+  }
+
+  void _generateBarriers() {
+    for (int i = 0; i < 6; i++) {
+      barriers.add(BarrierModel(
+        x: 1.0 + i * 1.0,
+        heights: _generateRandomHeights(),
+        movingDown: rand.nextBool(),
+      ));
+    }
+  }
+
+  List<double> _generateRandomHeights() {
     double top = rand.nextDouble() * 200 + 50;
     double bottom = 300 - top;
     return [top, bottom];
   }
 
-  void startGame() {
-    gameHasStarted = true;
-    time = 0;
-    initialPos = 0;
+  void _updateBarriers() {
+    for (var barrier in barriers) {
+      barrier.update(velocity, rand);
+    }
 
-    // Initial barrier generation
-    int initialBarrierCount = 6;
-    barriers = List.generate(initialBarrierCount, (index) {
-      return {
-        'x': 1.0 + index * 1.0,
-        'heights': generateRandomBarrierHeights(),
-        'offset': 0.0,
-        'movingDown': rand.nextBool(),
-        'passed': false,
-      };
-    });
+    if (velocity > 0.03 && !snackBarShown) {
+      showSnackBar('Watch out! Barriers can move now', 'velocityWarning');
+    }
+  }
 
-    // Start game loop
-    gameTimer = Timer.periodic(const Duration(milliseconds: 60), (timer) {
-      time += 0.05;
-      height = -4.9 * time * time + 2.8 * time;
-      velocity += 0.00003 + 0.00001 * sin(score / 2);
+  void _checkCollisionAndScore() {
+    final screenSize = MediaQuery.of(context).size;
+    final birdCollider = GameCollider(
+      center: Offset(screenSize.width / 2 - 45, (birdY + 1) * screenSize.height / 2 - 15),
+      size: 90,
+      height: 30,
+    );
 
-      if (mounted) {
-        setState(() {
-          birdY = initialPos - height;
-          for (var barrier in barriers) {
-            barrier['x'] -= velocity;
+    if (birdY > 1 ||
+        birdY < -1 ||
+        CollisionService.checkCollision(
+          bird: birdCollider,
+          barriers: barriers,
+          screenSize: screenSize,
+        )) {
+      _gameLoopController.stop();
+      resetGame();
+    }
 
-            if (velocity > 0.03 && !snackBarBoolVelocity) {
-              showSnackBar('Watch out! Barriers can move now', 'snackBarBoolVelocity');
-            }
-
-            // Vertical movement of barriers
-            if (velocity > 0.03 && rand.nextBool()) {
-              double offsetChange = 0.5;
-              if (barrier['movingDown']) {
-                barrier['offset'] += offsetChange;
-                if (barrier['offset'] > 30) barrier['movingDown'] = false;
-              } else {
-                barrier['offset'] -= offsetChange;
-                if (barrier['offset'] < -30) barrier['movingDown'] = true;
-              }
-            }
-          }
-        });
+    for (var barrier in barriers) {
+      if (!barrier.passed && barrier.x < 0 && barrier.x > -0.1) {
+        score++;
+        barrier.passed = true;
       }
+    }
+  }
 
-      // Get bird hitbox
-      Size screenSize = MediaQuery.of(context).size;
-      double birdCenterY = (birdY + 1) * screenSize.height / 2;
-      double birdTop = birdCenterY - birdSize / 2;
-      double birdBottom = birdCenterY + birdSize / 2;
-      double birdLeft = screenSize.width / 2 - birdSize / 2;
-      double birdRight = screenSize.width / 2 + birdSize / 2;
-      Rect birdRect = Rect.fromLTRB(birdLeft, birdTop, birdRight, birdBottom);
-
-      // Bird hits ceiling or floor
-      if (birdY > 1 || birdY < -1) {
-        timer.cancel();
-        gameTimer?.cancel();
-        resetGame();
-      }
-
-      // Collision detection
-      for (var barrier in barriers) {
-        double x = barrier['x'];
-        List<double> heights = barrier['heights'];
-        double offset = barrier['offset'];
-        double barrierWidth = 45;
-        double barrierXPos = (x + 1) / 2 * screenSize.width;
-
-        Rect topRect = Rect.fromLTWH(
-          barrierXPos,
-          0 + offset,
-          barrierWidth,
-          heights[0],
-        );
-
-        Rect bottomRect = Rect.fromLTWH(
-          barrierXPos,
-          screenSize.height - heights[1] + offset,
-          barrierWidth,
-          heights[1],
-        );
-
-        if (birdRect.overlaps(topRect) || birdRect.overlaps(bottomRect)) {
-          timer.cancel();
-          gameTimer?.cancel();
-          resetGame();
-        }
-
-        // Score counting
-        if (!barrier['passed'] && x < 0 && x > -0.1) {
-          score++;
-          barrier['passed'] = true;
-        }
-      }
-
-      // Recycle barriers
-      if (barriers.isNotEmpty && barriers.first['x'] < -1.5) {
-        barriers.removeAt(0);
-        barriers.add({
-          'x': barriers.last['x'] + rand.nextDouble() * 1.5 + 0.8,
-          'heights': generateRandomBarrierHeights(),
-          'offset': 0.0,
-          'movingDown': rand.nextBool(),
-          'passed': false,
-        });
-      }
-    });
+  void _recycleBarriers() {
+    if (barriers.isNotEmpty && barriers.first.x < -1.5) {
+      barriers.removeAt(0);
+      barriers.add(BarrierModel(
+        x: barriers.last.x + rand.nextDouble() * 1.5 + 0.8,
+        heights: _generateRandomHeights(),
+        movingDown: rand.nextBool(),
+      ));
+    }
   }
 
   void jump() {
@@ -165,14 +163,24 @@ class _FlappyGameState extends State<FlappyScreen> {
   }
 
   void resetGame() {
+    birdY = 0;
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(
-        builder: (context) => GameOverScreen(
-          score: score,
-          devScore: devScore,
-        ),
+        builder: (context) => GameOverScreen(score: score, devScore: devScore),
       ),
     );
+  }
+
+  void showSnackBar(String text, String id) {
+    ScaffoldMessenger.of(context).clearSnackBars();
+    ScaffoldMessenger.of(context).showSnackBar(CustomSnackBar.build(label: text));
+    if (id == 'velocityWarning') snackBarShown = true;
+  }
+
+  @override
+  void dispose() {
+    _gameLoopController.dispose();
+    super.dispose();
   }
 
   @override
@@ -180,9 +188,7 @@ class _FlappyGameState extends State<FlappyScreen> {
     return GestureDetector(
       onTap: gameHasStarted ? jump : startGame,
       child: Scaffold(
-        appBar: CustomAppBar(
-          title: 'Flappy Train',
-        ),
+        appBar: CustomAppBar(title: 'Flappy Train'),
         backgroundColor: SBBColors.milk,
         body: Column(
           children: [
@@ -194,20 +200,20 @@ class _FlappyGameState extends State<FlappyScreen> {
                     alignment: Alignment(0, birdY),
                     duration: const Duration(milliseconds: 0),
                     color: SBBColors.white,
-                    child: const Bird(),
+                    child: Bird(evu: chosenEVU),
                   ),
                   ...barriers.expand((barrier) => [
                         Barrier(
-                          xPos: barrier['x'],
-                          height: barrier['heights'][0],
+                          xPos: barrier.x,
+                          height: barrier.heights[0],
                           isBottom: false,
-                          offset: barrier['offset'],
+                          offset: barrier.offset,
                         ),
                         Barrier(
-                          xPos: barrier['x'],
-                          height: barrier['heights'][1],
+                          xPos: barrier.x,
+                          height: barrier.heights[1],
                           isBottom: true,
-                          offset: barrier['offset'],
+                          offset: barrier.offset,
                         ),
                       ]),
                   Container(
@@ -230,7 +236,7 @@ class _FlappyGameState extends State<FlappyScreen> {
                 color: SBBColors.royal,
                 child: Center(
                   child: Text(
-                    'Pass as many doors as possible!',
+                    gameHasStarted ? 'Pass as many doors as possible!' : 'Tap on the screen to start the game!',
                     style: TextStyle(
                       fontSize: 50,
                       fontFamily: SBBFontFamily.sbbFontBold,
@@ -240,31 +246,10 @@ class _FlappyGameState extends State<FlappyScreen> {
                   ),
                 ),
               ),
-            )
+            ),
           ],
         ),
       ),
     );
-  }
-
-  @override
-  void dispose() {
-    gameTimer?.cancel();
-    birdY = 0;
-    super.dispose();
-  }
-
-  void showSnackBar(String text, String boolToChange) {
-    ScaffoldMessenger.of(context).clearSnackBars();
-    ScaffoldMessenger.of(context).showSnackBar(CustomSnackBar.build(
-      label: text,
-    ));
-    switch (boolToChange) {
-      case 'snackBarBoolVelocity':
-        snackBarBoolVelocity = true;
-        break;
-      default:
-        break;
-    }
   }
 }

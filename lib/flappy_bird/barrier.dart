@@ -28,13 +28,17 @@ class Barrier extends StatelessWidget {
         width: 55,
         height: height,
         decoration: BoxDecoration(
-          color: SBBColors.charcoal,
+          gradient: LinearGradient(
+            colors: [SBBColors.iron, SBBColors.charcoal],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
           borderRadius: isBottom
-              ? BorderRadius.only(
+              ? const BorderRadius.only(
                   topLeft: Radius.circular(8),
                   topRight: Radius.circular(8),
                 )
-              : BorderRadius.only(
+              : const BorderRadius.only(
                   bottomLeft: Radius.circular(8),
                   bottomRight: Radius.circular(8),
                 ),
