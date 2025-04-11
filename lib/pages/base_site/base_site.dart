@@ -16,6 +16,8 @@ class BaseSite extends StatefulWidget {
 }
 
 class _BaseSiteState extends State<BaseSite> {
+  bool _isPressing = false;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -114,18 +116,30 @@ class _BaseSiteState extends State<BaseSite> {
     );
   }
 
+  void _startDimming() async {
+    _isPressing = true;
+    double value = await BrightnessUtil.getCurrentBrightness();
+    final bool shouldDim = value >= 0.5 ? true : false;
+
+    while (_isPressing) {
+      value = shouldDim ? (value - 0.05).clamp(0.0, 1.0) : (value + 0.05).clamp(0.0, 1.0);
+      await BrightnessUtil.setBrightness(value);
+      await Future.delayed(const Duration(milliseconds: 100));
+    }
+  }
+
+  void _stopDimming() {
+    _isPressing = false;
+  }
+
   Widget _method4(BuildContext context) {
-    return wrapInFullScreenContainer(
-      context,
-      gestureHeader: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onLongPress: () async {
-          final current = await BrightnessUtil.getCurrentBrightness();
-          final newBrightness = current < 0.5 ? 1.0 : 0.1;
-          BrightnessUtil.setBrightness(newBrightness);
-        },
-        child: const Header(),
-      ),
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onLongPressStart: (_) async {
+        _startDimming();
+      },
+      onLongPressEnd: (_) => _stopDimming(),
+      child: const Header(),
     );
   }
 
